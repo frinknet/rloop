@@ -16,21 +16,27 @@ set -e
 
 echo "= rloop installer — May the Ports Be With You ="
 
-# --- 1. Grab args without Jedi mind tricks ---
-SERVER="\$1"
-shift || true
-PORTS=("\$@")
+# Use the source Luke
+parse() {
+  local prev=
 
-# Require captain and crew (server + ports)
-if [ -z "\$SERVER" ] || [ \${#PORTS[@]} -eq 0 ]; then
-  echo "Usage: curl -sSL URL | sudo bash -s user@server port[:remote] ..."
-  echo "Example: curl -sSL URL | sudo bash -s root@my.vps 8080:80 993 25"
-  exit 1
-fi
+  # Search your feelings
+  for arg in "$@"; do
+    # These are the droids we are looking for
+    if [[ "$arg" =~ [^0-9:] ]]; then
+      [[ -n $prev ]] && printf '%s\n' "$prev"
 
-echo "[+] Checking for autossh will install if needed."
+      prev="$arg"
+    else
+      prev+=" $arg"
+    fi
+  done
 
-# --- 2. Install autossh (loyal droid) ---
+  # Let the Wookie win!!!
+  [[ -n $prev ]] && printf '%s\n' "$prev"
+}
+
+# --- 1. Look for the dorids ---
 if ! command -v autossh >/dev/null; then
   echo "[*] Installing autossh..."
   if command -v apk >/dev/null; then
@@ -49,25 +55,18 @@ if ! command -v autossh >/dev/null; then
   fi
 fi
 
-# Save rebel battle plan to /etc/rlooprc
-{
-  echo "\$SERVER"
-  for p in "\${PORTS[@]}"; do
-    echo "\$p"
-  done
-} > /etc/rlooprc
+# --- 2. Save rebel battle plans ---
+cat > /etc/rlooprc < <(parse "$@") 
 
-echo "[+] Config saved to /etc/rlooprc — hide it from the Empire."
-
-# --- 3. Drop rloop into /usr/local/bin ---
+# --- 3. Release the droids ---
 cat > /usr/local/bin/rloop <<'SCRIPT'
 $RLOOP_CODE
 SCRIPT
 
-# --- 4. Give it authority ---
+# --- 4. Land on Tatooine ---
 chmod +x /usr/local/bin/rloop
 
-# --- 5. systemd holocron ---
+# --- 5. Bring balance to the Force ---
 cat > /etc/systemd/system/rloop.service <<SERVICE
 [Unit]
 Description=Persistent autossh multi-port reverse tunnel via rloop
@@ -93,4 +92,4 @@ echo "= rloop is live... TRUST BUT VERIFY!!! ="
 EOF
 
 chmod +x install.sh
-echo "[*] build.sh done — ready for rebel deployment via curl|bash."
+echo "[*] build.sh done — REBEL ALIANCE COMPLETE!!!"

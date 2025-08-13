@@ -1,125 +1,167 @@
 #!/bin/bash
-# © 2025 FRINKnet & Friends - MIT LICENSE
+# © 2025 FRINKnet & Friends – MIT LICENSE
+#  rloop — May the Ports Be With You!!!
 
-TEST_MODE=0
+export TEST=0
+export VER="1.2"
+export BIN="${0##*/}"
+export PIDS=()
 
-# Sometimes we like to rehearse before the big gig
-for arg in "$@"; do
-  if [[ "$arg" == "--test" ]]; then
-    TEST_MODE=1
+# Trust. But verify...
+if [[ "$1" == "--test" ]]; then
+  TEST=1
 
-    # Surgery without the anesthesia
-    set -- "${@/--test/}"
+  shift
+fi
 
-    break
-  fi
-done
+# For those who don't understand the Force
+help() {
+  echo
+  echo " © 2025 FRINKnet & Friends – MIT LICENSE"
+  echo "  rloop — May the Ports Be With You!!!"
+  echo
+  echo "  Usage: $0 [--test] user@server port[:remote] …"
+  echo
 
-# If stdin has data (like from cat)
-if [ ! -t 0 ]; then
-  # treat first line as host, rest as ports
-  read -r remote_host
-  ports=()
+  exit 1
+}
 
-  # get em all
-  while read -r line && [ -n "$line" ]; do
-    ports+=("$line")
+# Use the source Luke
+parse() {
+  local prev=
+
+  # Search your feelings
+  for arg in "$@"; do
+    # These are the droids we are looking for
+    if [[ "$arg" =~ [^0-9:] ]]; then
+      [[ -n $prev ]] && printf '%s\n' "$prev"
+
+      prev="$arg"
+    else
+      prev+=" $arg"
+    fi
   done
 
+  # Let the Wookie win!!!
+  [[ -n $prev ]] && printf '%s\n' "$prev"
+}
+
+# Almost there... Almost there...
+mapping() {
+  local mapping left right tunnel_args=
+
+  # The odds of navigating are 3720 to 1
+  for mapping in "$@"; do
+    left="${mapping%%:*}"
+    right="${mapping##*:}"
+
+    # Stupid users need to be warned
+    if [[ -z $left || -z $right ]]; then
+      echo "Error: mapping '$mapping' is malformed... Oh the insanity of it all!" >&2
+
+      exit 3
+    fi
+
+    # May the wrath of Yoda rain down!
+    if ! [[ $left =~ ^[0-9]+$ && $right =~ ^[0-9]+$ ]]; then
+      echo "Error: mapping '$mapping' contains non-numeric ports… RAGE QUITTING!" >&2
+
+      exit 4
+    fi
+
+    # New fluent in over &m forms of communication
+    tunnel_args+=" -R ${right}:localhost:${left}"
+  done
+
+  # now fluent in over 7m form of communication
+  echo "$tunnel_args"
+}
+
+# Take us to Coruscant!!!
+connect() {
+  local tunnel_args server ports err
+
+  server="$1"; shift
+  ports=( "$@" )
+
+  # Guardrails so you don’t tunnel into a reverse Death Star
+  if [[ "$server" =~ ^[0-9]+$ || "$server" =~ ^[0-9]+\.[0-9]+$ ]]; then
+    echo "Error: '$server' looks like a port or rogue asteroid." >&2
+
+    exit 2
+  fi
+
+  # Prepare to jump to hyperspace
+  tunnel_args="$(mapping "${ports[@]}")"
+
+  # if the padowans come to play...
+  if (( TEST )); then
+    echo
+    echo "TESTING: autossh -M0 -N -o ServerAliveInterval=2 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes $server$tunnel_args"
+    echo
+
+    autossh -M0 -N \
+      -o "ServerAliveInterval=2" -o "ServerAliveCountMax=3" \
+      -o "ExitOnForwardFailure=yes" "$server" $tunnel_args
+
+    err=$?
+
+    echo
+
+    if (( err == 0 )); then
+      echo "  ...Test complete. No hull breaches detected."
+      echo
+      return
+    else
+      echo "  POODOO!!! - Banthas detected... - exit $err" >&2
+
+      exit $err
+    fi
+  fi
+
+  (
+    # Eternal tunnel loop
+    while true; do
+      # This should not fail
+      autossh -M0 -N \
+        -o "ServerAliveInterval=2" -o "ServerAliveCountMax=3" \
+        -o "ExitOnForwardFailure=yes" "$server" $tunnel_args
+
+      # If it does wait two bits
+      sleep 2
+
+      # Go on like this FOREVER!!!
+    done
+
+    # Usa da boomba!!
+  ) &
+
+  # Me lika disa one!
+  PIDS+=( $! )
+}
+
+# Are there Midi-Chlorians here?
+if [ ! -t 0 ]; then
+  mapfile -t lines
 else
-  # if the user is stupid die nicely
-  if [ $# -lt 2 ]; then
-    echo "Usage: $0 [--test] user@server port[:remote] ..."
-    exit 1
-  fi
-
-  # otherwise hopefully we're good to go
-  remote_host="$1"
-  shift
-  ports=("$@")
+  mapfile -t lines < <(parse "$@")
 fi
 
-
-# If host is number or port die a bloody
-if [[ "$remote_host" =~ ^[0-9]+$ ]] || [[ "$remote_host" =~ ^[0-9]+\.[0-9]+$ ]]; then
-  echo "Error: '$remote_host' looks suspiciously like a port or a bad IP." >&2
-  exit 2
+# The Jedi forbid aimless excess
+if (( ${#lines[@]} == 0 )); then
+  help
 fi
 
+# Reach out to the Force all around
+for line in "${lines[@]}"; do
+  read -r server rest <<< "$line"
+  read -ra ports <<< "$rest"
 
-tunnel_args=""
-
-
-# Get 'em PORTS!!!
-for mapping in "${ports[@]}"; do
-
-  local_port="${mapping%%:*}"
-  remote_port="${mapping##*:}"
-
-  # If either port is empty or NaN commit suicide
-  if [[ -z "$local_port" || -z "$remote_port" ]]; then
-    echo "Error: mapping '$mapping' is malformed... Terminating with EXTREME PREJUDICE!!!" >&2
-    exit 3
-  fi
-  
-  # If either port is wrong tell the user you're angry
-  if ! [[ "$local_port" =~ ^[0-9]+$ && "$remote_port" =~ ^[0-9]+$ ]]; then
-    echo "Error: mapping '$mapping' contains non-numeric ports... RAGE QUITTING NOW!!!" >&2
-    exit 4
-  fi
-
-  # Otherwise we might make it...
-  tunnel_args+=" -R ${remote_port}:localhost:${local_port}"
+  # Reach out to the fource all around
+  connect "$server" "${ports[@]}"
 done
 
-
-# But if no ports die screaming...
-if [[ -z "$tunnel_args" ]]; then
-  echo "Error: no valid ports specified... SCREAMING IN THE VOID!!!" >&2
-  exit 5
-fi
-
-
-# TEST MODE RUNS ONCE, LIKE A NERVOUS AUDITION
-if (( TEST_MODE )); then
-  echo
-  echo "Hold onto your butts!!!"
-  echo
-  echo "  Host: $remote_host"
-  echo "  Ports: ${ports[*]}"
-  echo
-
-  autossh -M 0 -N \
-    -o "ServerAliveInterval=2" -o "ServerAliveCountMax=3" \
-    -o "ExitOnForwardFailure=yes" "$remote_host" $tunnel_args
-
-  local err=$?
-
-  echo
-
-  if (( err == 0 )); then
-    echo "  This was just a drill. Nobody died. Yet."
-  else
-    echo "  Aparently we did not survive that one."
-  fi
-
-  echo
-  echo "autossh -M 0 -N -o 'ServerAliveInterval=2' -o 'ServerAliveCountMax=3' -o 'ExitOnForwardFailure=yes' $remote_host $tunnel_args"
-  echo
-
-  exit $err
-fi
-
-# Otherwise we can do this
-while true; do
-
-  # It should stay connected
-  autossh -M 0 -N \
-    -o "ServerAliveInterval=2" -o "ServerAliveCountMax=3" \
-    -o "ExitOnForwardFailure=yes" "$remote_host" $tunnel_args
-
-  # But if not give a moment to breath
-  sleep 2
-
-  # Don't stop. Try again... FOREVER!!!
+# Patience is a virtue young padawan.
+for pid in "${PIDS[@]}"; do
+  wait "$pid"
 done

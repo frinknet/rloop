@@ -33,9 +33,12 @@ rloop root@cloud.example.com 53 25 993 8080:80
 
 ## Install
 
-1. `curl -sSL https://you/your/install.sh | bash` (replace with real link, no funny business)
-2. Answer the prompts: server, ports, mappings.
-3. Enjoy the service and never look back.
+```bash
+curl https://raw.githubusercontent.com/frinknet/rloop/refs/heads/main/install.sh | sudo bash
+```
+1. Cat the installer to root bash (Read the source - I'm responsible...)
+2. Answer the prompts: server, ports, mappings. (Ports below 1000 need root authority)
+3. Enjoy the service and never look back. (If you need to reconfigure you can look at `/etc/rlooprc`
 
 ## Systemd
 

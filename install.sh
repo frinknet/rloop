@@ -10,19 +10,19 @@ parse() {
   local prev=
 
   # Search your feelings
-  for arg in ""; do
+  for arg in "$@"; do
     # These are the droids we are looking for
-    if [[ "" =~ [^0-9:] ]]; then
-      [[ -n  ]] && printf '%s\n' ""
+    if [[ "$arg" =~ [^0-9:] ]]; then
+      [[ -n $prev ]] && printf '%s\n' "$prev"
 
-      prev=""
+      prev="$arg"
     else
-      prev+=" "
+      prev+=" $arg"
     fi
   done
 
   # Let the Wookie win!!!
-  [[ -n  ]] && printf '%s\n' ""
+  [[ -n $prev ]] && printf '%s\n' "$prev"
 }
 
 # --- 1. Look for the dorids ---
@@ -45,7 +45,7 @@ if ! command -v autossh >/dev/null; then
 fi
 
 # --- 2. Save rebel battle plans ---
-cat > /etc/rlooprc < <(parse "") 
+cat > /etc/rlooprc < <(parse "$@") 
 
 # --- 3. Release the droids ---
 cat > /usr/local/bin/rloop <<'SCRIPT'

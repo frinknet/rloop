@@ -13,7 +13,7 @@ parse() {
   for arg in "$@"; do
     # These are the droids we are looking for
     if [[ "$arg" =~ [^0-9:] ]]; then
-      [[ -n $prev ]] && printf '%s\n' "$prev"
+      [[ -n "$prev" ]] && printf '%s\n' "$prev"
 
       prev="$arg"
     else

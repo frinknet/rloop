@@ -53,7 +53,7 @@ rloop root@cloud.example.com 53 25 993 8080:80
 
 ## License
 
-Public domain. The code is yours. Abuse responsibly, preferably in the name of progress.
+MIT License - Share the Lemure love. The copyright info is in the code. PRs and FORKs welcome!!!!
 
 ***
 

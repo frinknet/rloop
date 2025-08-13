@@ -34,7 +34,7 @@ rloop root@cloud.example.com 53 25 993 8080:80
 ## Install
 
 ```bash
-curl https://raw.githubusercontent.com/frinknet/rloop/refs/heads/main/install.sh | sudo bash user@host 25 53
+curl https://raw.githubusercontent.com/frinknet/rloop/refs/heads/main/install.sh | sudo bash -s user@host 25 53
 ```
 1. Cat the installer to root bash (Read the source - I'm responsible...)
 2. Saddly ports below 1000 need root authority which is usually what you want.
@@ -43,7 +43,7 @@ curl https://raw.githubusercontent.com/frinknet/rloop/refs/heads/main/install.sh
 5. You can also update	to a new version doing the following...
 
 ```bash
-curl https://raw.githubusercontent.com/frinknet/rloop/refs/heads/main/install.sh | sudo bash $(cat /etc/rlooprc)
+curl https://raw.githubusercontent.com/frinknet/rloop/refs/heads/main/install.sh | sudo bash -s $(cat /etc/rlooprc)
 ```
 
 ## Systemd

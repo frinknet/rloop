@@ -34,11 +34,17 @@ rloop root@cloud.example.com 53 25 993 8080:80
 ## Install
 
 ```bash
-curl https://raw.githubusercontent.com/frinknet/rloop/refs/heads/main/install.sh | sudo bash
+curl https://raw.githubusercontent.com/frinknet/rloop/refs/heads/main/install.sh | sudo bash user@host 25 53
 ```
 1. Cat the installer to root bash (Read the source - I'm responsible...)
-2. Answer the prompts: server, ports, mappings. (Ports below 1000 need root authority)
-3. Enjoy the service and never look back. (If you need to reconfigure you can look at `/etc/rlooprc`
+2. Saddly ports below 1000 need root authority which is usually what you want.
+3. Enjoy the service and never look back.
+4. If you need to reconfigure you can look at `/etc/rlooprc`
+5. You can also update	to a new version doing the following...
+
+```bash
+curl https://raw.githubusercontent.com/frinknet/rloop/refs/heads/main/install.sh | sudo bash $(cat /etc/rlooprc)
+```
 
 ## Systemd
 

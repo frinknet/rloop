@@ -1,4 +1,4 @@
-# rloop — Multi-Port SSH Tunnel Daemon
+# rloop — MAY THE PORTS BE WITH YOU!!!
 
 Ever wanted to sling a dozen ports through space-time with one command? rloop is your answer. It’s a single-script marvel: set up persistent, auto-reconnecting reverse SSH tunnels that forward any pile of ports (or local:remote combos) through autossh, with a systemd tailwind. All you need is a config file, a dash of ambition, and a knack for wrangling penguins.
 

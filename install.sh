@@ -1,27 +1,23 @@
 #!/bin/bash
 set -e
-echo "=== rloop installer (self-contained) ==="
 
-# --- 1. Gather config FIRST ---
-echo "Enter remote server (e.g. user@server):"
-read -r SERVER
-PORTS=()
-while true; do
-  read -p "Enter port (or local:remote mapping), blank to finish: " P
-  [ -z "$P" ] && break
-  PORTS+=("$P")
-done
+echo "= rloop installer — May the Ports Be With You ="
 
-# Write /etc/rlooprc early
-{
-  echo "$SERVER"
-  for p in "${PORTS[@]}"; do
-    echo "$p"
-  done
-} > /etc/rlooprc
-echo "[+] Config saved to /etc/rlooprc"
+# --- 1. Grab args without Jedi mind tricks ---
+SERVER="$1"
+shift || true
+PORTS=("$@")
 
-# --- 2. Install autossh ---
+# Require captain and crew (server + ports)
+if [ -z "$SERVER" ] || [ ${#PORTS[@]} -eq 0 ]; then
+  echo "Usage: curl -sSL URL | sudo bash -s user@server port[:remote] ..."
+  echo "Example: curl -sSL URL | sudo bash -s root@my.vps 8080:80 993 25"
+  exit 1
+fi
+
+echo "[+] Checking for autossh will install if needed."
+
+# --- 2. Install autossh (loyal droid) ---
 if ! command -v autossh >/dev/null; then
   echo "[*] Installing autossh..."
   if command -v apk >/dev/null; then
@@ -35,11 +31,22 @@ if ! command -v autossh >/dev/null; then
   elif command -v pacman >/dev/null; then
     pacman -Sy --noconfirm autossh
   else
-    echo "No supported package manager found — install autossh manually." ; exit 1
+    echo "No supported package manager found — install autossh manually and pray."
+    exit 1
   fi
 fi
 
-# --- 3. Install rloop script ---
+# Save rebel battle plan to /etc/rlooprc
+{
+  echo "$SERVER"
+  for p in "${PORTS[@]}"; do
+    echo "$p"
+  done
+} > /etc/rlooprc
+
+echo "[+] Config saved to /etc/rlooprc — hide it from the Empire."
+
+# --- 3. Drop rloop into /usr/local/bin ---
 cat > /usr/local/bin/rloop <<'SCRIPT'
 #!/bin/bash
 # © 2025 FRINKnet & Friends - MIT LICENSE
@@ -167,9 +174,11 @@ while true; do
   # Don't stop. Try again... FOREVER!!!
 done
 SCRIPT
+
+# --- 4. Give it authority ---
 chmod +x /usr/local/bin/rloop
 
-# --- 4. Install systemd service ---
+# --- 5. systemd holocron ---
 cat > /etc/systemd/system/rloop.service <<SERVICE
 [Unit]
 Description=Persistent autossh multi-port reverse tunnel via rloop
@@ -187,7 +196,8 @@ User=root
 WantedBy=multi-user.target
 SERVICE
 
-# --- 5. Enable and start ---
+# --- 5. Engage hyperdrive ---
 systemctl daemon-reload
 systemctl enable --now rloop
-echo "=== Installation complete. rloop is live. ==="
+
+echo "= rloop is live... TRUST BUT VERIFY!!! ="

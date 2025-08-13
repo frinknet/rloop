@@ -1,43 +1,36 @@
 #!/bin/bash
 # © 2025 FRINKnet & Friends - MIT LICENSE
 # build.sh — produce self-contained installer with CLI-driven config
-# USE THE SOURCE LUKE!!!
+# USE THE SOURCE LUKE!!! (avoid the Dark Side of sed errors)
 
 RLOOP_SRC="./rloop.sh"
-[ ! -f "$RLOOP_SRC" ] && { echo "Missing $RLOOP_SRC — did you nuke it?"; exit 1; }
+[ ! -f "$RLOOP_SRC" ] && { echo "Missing $RLOOP_SRC — did you blow up the Death Star?"; exit 1; }
 
+# Slurp rloop.sh into a var (midichlorians sold separately)
 RLOOP_CODE="$(<"$RLOOP_SRC")"
 
-# THESE ARE THE DROIDS YOU NEED!!!
-cat > install.sh <<'EOF'
+# Build installer skeleton — Force-compatible
+cat > install.sh <<EOF
 #!/bin/bash
 set -e
 
-echo "= rloop installer (self-contained) ="
+echo "= rloop installer — May the Ports Be With You ="
 
-# --- 1. Grab args without whining ---
-SERVER="$1"
+# --- 1. Grab args without Jedi mind tricks ---
+SERVER="\$1"
 shift || true
-PORTS=("$@")
+PORTS=("\$@")
 
-# We require a brain and at least one port mapping
-if [ -z "$SERVER" ] || [ ${#PORTS[@]} -eq 0 ]; then
+# Require captain and crew (server + ports)
+if [ -z "\$SERVER" ] || [ \${#PORTS[@]} -eq 0 ]; then
   echo "Usage: curl -sSL URL | sudo bash -s user@server port[:remote] ..."
   echo "Example: curl -sSL URL | sudo bash -s root@my.vps 8080:80 993 25"
   exit 1
 fi
 
-# Write /etc/rlooprc right now before anyone changes their mind
-{
-  echo "$SERVER"
-  for p in "${PORTS[@]}"; do
-    echo "$p"
-  done
-} > /etc/rlooprc
+echo "[+] Checking for autossh will install if needed."
 
-echo "[+] Config saved to /etc/rlooprc — print it, frame it, cherish it."
-
-# --- 2. Install autossh (our irrationally loyal tunnel butler) ---
+# --- 2. Install autossh (loyal droid) ---
 if ! command -v autossh >/dev/null; then
   echo "[*] Installing autossh..."
   if command -v apk >/dev/null; then
@@ -51,17 +44,30 @@ if ! command -v autossh >/dev/null; then
   elif command -v pacman >/dev/null; then
     pacman -Sy --noconfirm autossh
   else
-    echo "No supported package manager found — install autossh manually and pray." ; exit 1
+    echo "No supported package manager found — install autossh manually and pray."
+    exit 1
   fi
 fi
 
-# --- 3. Drop the actual rloop script into /usr/local/bin like a crown jewel ---
+# Save rebel battle plan to /etc/rlooprc
+{
+  echo "\$SERVER"
+  for p in "\${PORTS[@]}"; do
+    echo "\$p"
+  done
+} > /etc/rlooprc
+
+echo "[+] Config saved to /etc/rlooprc — hide it from the Empire."
+
+# --- 3. Drop rloop into /usr/local/bin ---
 cat > /usr/local/bin/rloop <<'SCRIPT'
-RLOOP_PLACEHOLDER
+$RLOOP_CODE
 SCRIPT
+
+# --- 4. Give it authority ---
 chmod +x /usr/local/bin/rloop
 
-# --- 4. Summon systemd to do our eternal bidding ---
+# --- 5. systemd holocron ---
 cat > /etc/systemd/system/rloop.service <<SERVICE
 [Unit]
 Description=Persistent autossh multi-port reverse tunnel via rloop
@@ -79,16 +85,12 @@ User=root
 WantedBy=multi-user.target
 SERVICE
 
-# --- 5. Bring forth the daemon ---
+# --- 5. Engage hyperdrive ---
 systemctl daemon-reload
 systemctl enable --now rloop
 
-echo "= Installation complete. rloop is live. Try not to cry when it Just Works. ="
+echo "= rloop is live... TRUST BUT VERIFY!!! ="
 EOF
 
-# drop actual rloop.sh code into the placeholder
-sed -i "s|RLOOP_PLACEHOLDER|$RLOOP_CODE|g" install.sh
-
 chmod +x install.sh
-echo "[*] build.sh done — feed to the masses via curl|bash without blocking on silly readline prompts."
-
+echo "[*] build.sh done — ready for rebel deployment via curl|bash."

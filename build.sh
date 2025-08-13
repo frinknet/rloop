@@ -14,7 +14,9 @@ cat > install.sh <<EOF
 #!/bin/bash
 set -e
 
-echo "= rloop installer — May the Ports Be With You ="
+echo
+echo "= rloop installer — May the Ports Be With You. ="
+echo
 
 # Use the source Luke
 parse() {
@@ -66,7 +68,7 @@ SCRIPT
 # --- 4. Land on Tatooine ---
 chmod +x /usr/local/bin/rloop
 
-# --- 5. Bring balance to the Force ---
+# --- 5. Enter in the Pod Race ---
 cat > /etc/systemd/system/rloop.service <<SERVICE
 [Unit]
 Description=Persistent autossh multi-port reverse tunnel via rloop
@@ -84,7 +86,7 @@ User=root
 WantedBy=multi-user.target
 SERVICE
 
-# --- 5. Engage hyperdrive ---
+# --- 5. Engage Hyperdrive ---
 systemctl daemon-reload
 systemctl enable --now rloop
 

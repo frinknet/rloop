@@ -1,10 +1,14 @@
 #!/bin/bash
+# © 2025 FRINKnet & Friends - MIT LICENSE
+
 # build.sh — produce self-contained installer with pre-install config prompt
 
+# USE THE SOURCE LUKE!!!
 RLOOP_SRC="./rloop.sh"
 [ ! -f "$RLOOP_SRC" ] && { echo "Missing $RLOOP_SRC"; exit 1; }
 RLOOP_CODE="$(<"$RLOOP_SRC")"
 
+# THESE ARE THE DROIDS YOU NEED!!!
 cat > install.sh <<EOF
 #!/bin/bash
 set -e

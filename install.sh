@@ -121,7 +121,7 @@ mapping() {
     fi
 
     # New fluent in over &m forms of communication
-    tunnel_args+=" -R ${right}:localhost:${left}"
+    tunnel_args+=" -R 0.0.0.0:${right}:localhost:${left}"
   done
 
   # now fluent in over 7m form of communication
@@ -165,7 +165,7 @@ connect() {
       return
     else
       echo "  POODOO!!! - Banthas detected... - exit $err" >&2
-
+      echo
       exit $err
     fi
   fi

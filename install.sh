@@ -58,6 +58,9 @@ export VER="1.2"
 export BIN="${0##*/}"
 export PIDS=()
 
+set -m  # Enable job control
+trap "kill -- -$$" EXIT
+
 # Trust. But verify...
 if [[ "$1" == "--test" ]]; then
   TEST=1

@@ -14,11 +14,8 @@ Ever wanted to sling a dozen ports through space-time with one command? rloop is
 
 **Config File** (`/etc/rlooprc`):
 ```
-user@host
-53
-25
-993
-8080:80
+user@host 53 25 993
+user@other 8080:80
 ```
 
 **Run via config:**

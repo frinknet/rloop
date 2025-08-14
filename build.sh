@@ -58,7 +58,7 @@ if ! command -v autossh >/dev/null; then
 fi
 
 # --- 2. Save rebel battle plans ---
-cat > /etc/rlooprc < <(parse "\$@") 
+cat >> /etc/rlooprc < <(parse "\$@") 
 
 # --- 3. Release the droids ---
 cat > /usr/local/bin/rloop <<'SCRIPT'
